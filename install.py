@@ -2,7 +2,7 @@
 import os
 import subprocess
 
-requirements =  ["paramiko", "termcolor"]
+requirements =  ["paramiko", "termcolor", "argparse"]
 Failed = []
 Installed = []
 

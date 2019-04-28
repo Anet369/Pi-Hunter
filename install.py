@@ -2,7 +2,11 @@
 import os
 import subprocess
 
-requirements =  ["paramiko", "termcolor", "argparse"]
+if os.uid != 0:
+    print "Please run as root"
+    exit()
+    
+requirements =  ["paramiko", "termcolor", "argparse", "cryptography==2.4.2", "setuptools", "wheel"]
 Failed = []
 Installed = []
 

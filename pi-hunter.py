@@ -2,6 +2,8 @@
 import os
 import argparse
 import paramiko
+import threading
+import time
 from termcolor import cprint, colored
 
 #config
@@ -65,10 +67,18 @@ def main():
     elif args.arp_scan:
         print "do a ARP scan here"
     elif args.file:
+        startTime = time.time()
+        threads = []
+        print str(startTime)
         Targets = open(args.file, "r").read().split("\n")
         for target in Targets:
             if target != "":
-                SendPayload(target, payload)
+                threads.append(threading.Thread(target=SendPayload, args=[target, payload])) #fra 660 til 
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        print "Took: " + str(startTime - time.time())
 
 def SendPayload(target, payload):
     if args.script:

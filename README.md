@@ -1,5 +1,4 @@
 # Pi-Hunter
-Inspired by [rpi-hunter](https://github.com/BusesCanFly/rpi-hunter)
 
 **Pi-Hunter** is a tool made to scan a range of ip addresses looking for raspberry pi's with default SSH credencials.
 

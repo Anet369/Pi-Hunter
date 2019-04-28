@@ -4,7 +4,7 @@ Inspired by [rpi-hunter](https://github.com/BusesCanFly/rpi-hunter)
 **Pi-Hunter** is a tool made to scan a range of ip addresses looking for raspberry pi's with default SSH credencials.
 
 ## Getting Started
-Clone the repository, give some permissions and run the install.py with root privileges.
+straight forward installation, Clone the repository, give some permissions and run the install.py with root privileges.
 ```
 git clone https://github.com/Anet369/Pi-Hunter.git
 cd Pi-Hunter

@@ -73,7 +73,7 @@ def main():
         Targets = open(args.file, "r").read().split("\n")
         for target in Targets:
             if target != "":
-                threads.append(threading.Thread(target=SendPayload, args=[target, payload])) #fra 660 til 
+                threads.append(threading.Thread(target=SendPayload, args=[target, payload])) #fra 660 til 12
         for thread in threads:
             thread.start()
         for thread in threads:
@@ -102,7 +102,6 @@ def ExecuteSshCommand(target, port, username, password, payload):
         cprint("Authentication failed", FailedColor, attrs=["bold"])
         print ""
     SSHClient.close()
-
 def ExecuteSshScript(target, port, username, password, fileName, filePath):
     SSHClient = paramiko.SSHClient()
     SSHClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())

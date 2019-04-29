@@ -31,9 +31,9 @@ All the requirements will be installed in the [install.py](install.py)
 This project is inspired by the awesome tool **rpi-hunter** made by **[BusesCanFly](https://github.com/BusesCanFly/rpi-hunter)**
 
 ## Todo
-* ** Scan the local network for devices **
-* ** Scan an ip-range **
-* ** Add the function to verify that the device is a raspberry pi and not just a regular ssh enabled device **
+* **Scan the local network for devices**
+* **Scan an ip-range**
+* **Add the function to verify that the device is a raspberry pi and not just a regular ssh enabled device**
 
 
 ## License

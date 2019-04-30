@@ -7,13 +7,13 @@ straight forward installation, Clone the repository, give some permissions and r
 ```
 git clone https://github.com/Anet369/Pi-Hunter.git
 cd Pi-Hunter
-pip -r requirements.txt
+pip install -r requirements.txt
 ```
 and you should be ready to go.
 
 One line version:
 ```
-git clone https://github.com/Anet369/Pi-Hunter.git && cd Pi-Hunter && pip -r requirements.txt
+git clone https://github.com/Anet369/Pi-Hunter.git && cd Pi-Hunter && pip install -r requirements.txt
 ```
 ## Requirements
 **Pi-Hunter** is using a couple of python modules
@@ -22,6 +22,9 @@ git clone https://github.com/Anet369/Pi-Hunter.git && cd Pi-Hunter && pip -r req
 * **threading**
 * **socket**
 * **ipcalc**
+* **nmap** 
+* **netifaces**
+* **netaddr**
 
 All the requirements is listed in [requirements.txt](requirements.txt)
 
@@ -30,8 +33,6 @@ All the requirements is listed in [requirements.txt](requirements.txt)
 This project is inspired by the awesome tool **rpi-hunter** made by **[BusesCanFly](https://github.com/BusesCanFly/rpi-hunter)**
 
 ## Todo
-* **Scan the local network for devices**
-* **Scan an ip-range**
 * **Add the function to verify that the device is a raspberry pi and not just a regular ssh enabled device**
 
 

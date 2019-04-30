@@ -6,15 +6,15 @@ import threading
 import time
 import socket
 import ipcalc
+import nmap
+import netifaces
+from netaddr import IPNetwork, IPRange, IPAddress, iprange_to_globs
 from termcolor import cprint, colored
 
 #config
 BannerColor = "yellow"
 SuccessColor = "green"
 FailedColor = "red"
-
-#TODO:
-#make the arp local scan thing
 
 #args
 parser = argparse.ArgumentParser();
@@ -23,7 +23,7 @@ TargetGroup = parser.add_argument_group("Target")
 TargetGroupOptions = TargetGroup.add_mutually_exclusive_group(required=True)
 TargetGroupOptions.add_argument("-t", dest="target", help="Single target")
 TargetGroupOptions.add_argument("-r", dest="ip_range", help="Range of targets")
-TargetGroupOptions.add_argument("-a", dest="arp_scan", help="Scan local network with ARP", action="store_true")
+TargetGroupOptions.add_argument("-l", dest="local_scan", help="Scan local network with nmap", action="store_true")
 TargetGroupOptions.add_argument("-f", dest="file", help="Use an ip list from a file")
 TargetGroup.add_argument("--port", dest="port", type=int, help="Use custom port", default=22)
 
@@ -68,23 +68,29 @@ def main():
         target = args.target
         SendPayload(target, payload)
     elif args.ip_range:
-        print "calculate ip range here"
-    elif args.arp_scan:
-        print "do a ARP scan here"
-        ScanLocalNetwork("192.168.0.159")
+        start = args.ip_range.split(",")[0]
+        stop = args.ip_range.split(",")[1]
+        hosts = ScanIpRange(start, stop) 
+        print colored("Found ", "green") + colored(str(len(hosts)), "yellow") + colored(" hosts", "green")
+        print ""
+        print colored("Trying SSH...", "green")
+        print ""
+        SendPayloadRange(hosts, payload)
+    elif args.local_scan:
+        localIps = GetIpInterfaces()
+        for localIp in localIps:
+            if localIp != "127.0.0.1/8":
+                networkSize = ipcalc.Network(localIp.split("/")[0], localIp.split("/")[1]).size()
+                print colored("Scanning ", "green") + colored(str(networkSize), "yellow") + colored(" hosts", "green")
+                ips = ScanLocalNetwork(localIp)
+                print colored("Found ", "green") + colored(str(len(ips)), "yellow") + colored(" hosts", "green")
+                print ""
+                print colored("Trying SSH...", "green")
+                print ""
+                SendPayloadRange(ips, payload)
     elif args.file:
-        startTime = time.time()
-        threads = []
-        print str(startTime)
-        Targets = open(args.file, "r").read().split("\n")
-        for target in Targets:
-            if target != "":
-                threads.append(threading.Thread(target=SendPayload, args=[target, payload])) #fra 660 til 12
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
-        print "Took: " + str(startTime - time.time())
+        Targets = open(args.file, "r").read().replace("\n").split("\n")
+        SendPayloadRange(Targets, payload)
 
 def SendPayload(target, payload):
     if args.script:
@@ -130,25 +136,51 @@ def ExecuteSshScript(target, port, username, password, fileName, filePath):
         print ""
     SSHClient.close()
 
+def SendPayloadRange(IpList, payload):
+    threads = []
+    for target in IpList:
+        if target != "":
+            threads.append(threading.Thread(target=SendPayload, args=[target, payload]))
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
 
 def ScanLocalNetwork(ip):
-    print "Scanning"
-    for host in range(1, HowManyHosts(ip)):
-        newIp = ip.split(".")[0] + "." + ip.split(".")[1] + "." + ip.split(".")[1] + "."
-        print "Scanning: " + newIp + str(host)
-        threading.Thread(target=ScanHost, args=[newIp + str(host)]).start()
-        time.sleep(0.1)
-
-def ScanHost(ip):
-    if(IsPortOpen(ip, 22)):
-        print "SSH found: " + ip
-def HowManyHosts(ip, prefix=24):
-    return ipcalc.Network(ip, prefix).size()
+    scanner = nmap.PortScanner()
+    scanner.scan(ip, ports="22", arguments="-T 4")
+    Ips = []
+    for host in scanner.all_hosts():
+        if(scanner[host].tcp(22)["state"] == "open"):
+            Ips.append(host)
+    return Ips
+def ScanIpRange(start, stop):
+    print colored("Scanning from ", "green") + colored(start, "yellow") + colored(" to ", "green") + colored(stop, "yellow")
+    targetRanges = iprange_to_globs(start, stop)
+    scanner = nmap.PortScanner()
+    hosts=[]
+    for target in targetRanges:
+        scanner.scan(target, ports="22", arguments="-T 4")
+    for host in scanner.all_hosts():
+        if scanner[host].tcp(22)["state"] == "open":
+            hosts.append(host)
+    return hosts
 
 def IsPortOpen(ip, port=22):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex((ip, port))
-    return result == 0
+    scanner = nmap.PortScanner()
+    scanner.scan(hosts=ip, ports=port)
+    return (scanner[ip].tcp(port)["state"] == "open")
+def GetIpInterfaces():
+    ifaces = netifaces.interfaces()
+    Ips = []
+    for iface in ifaces:
+        try:
+            ip = netifaces.ifaddresses(iface)[2][0]["addr"]
+            mask = netifaces.ifaddresses(iface)[2][0]["netmask"]
+            Ips.append(ip + "/" + str(IPNetwork(ip, mask).prefixlen))
+        except:
+            continue
+    return Ips
 
 def PrintBanner():
     print ""

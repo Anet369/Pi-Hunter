@@ -1,7 +1,10 @@
+setuptools>=41.0.1
+wheel>=0.33.1
 paramiko
 termcolor
 argparse
 cryptography==2.4.2
-setuptools
-wheel
 ipcalc
+nmap 
+netifaces
+netaddr

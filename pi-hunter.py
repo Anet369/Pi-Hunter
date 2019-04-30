@@ -89,7 +89,8 @@ def main():
                 print ""
                 SendPayloadRange(ips, payload)
     elif args.file:
-        Targets = open(args.file, "r").read().replace("\n").split("\n")
+        Targets = open(args.file, "r").read().split("\n")
+        Targets.pop()
         SendPayloadRange(Targets, payload)
 
 def SendPayload(target, payload):

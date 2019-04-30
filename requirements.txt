@@ -1,0 +1,7 @@
+paramiko
+termcolor
+argparse
+cryptography==2.4.2
+setuptools
+wheel
+ipcalc

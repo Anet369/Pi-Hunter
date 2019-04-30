@@ -4,12 +4,17 @@ import argparse
 import paramiko
 import threading
 import time
+import socket
+import ipcalc
 from termcolor import cprint, colored
 
 #config
 BannerColor = "yellow"
 SuccessColor = "green"
 FailedColor = "red"
+
+#TODO:
+#make the arp local scan thing
 
 #args
 parser = argparse.ArgumentParser();
@@ -18,7 +23,7 @@ TargetGroup = parser.add_argument_group("Target")
 TargetGroupOptions = TargetGroup.add_mutually_exclusive_group(required=True)
 TargetGroupOptions.add_argument("-t", dest="target", help="Single target")
 TargetGroupOptions.add_argument("-r", dest="ip_range", help="Range of targets")
-TargetGroupOptions.add_argument("-a", dest="arp_scan", help="Scan local network with ARP")
+TargetGroupOptions.add_argument("-a", dest="arp_scan", help="Scan local network with ARP", action="store_true")
 TargetGroupOptions.add_argument("-f", dest="file", help="Use an ip list from a file")
 TargetGroup.add_argument("--port", dest="port", type=int, help="Use custom port", default=22)
 
@@ -66,6 +71,7 @@ def main():
         print "calculate ip range here"
     elif args.arp_scan:
         print "do a ARP scan here"
+        ScanLocalNetwork("192.168.0.159")
     elif args.file:
         startTime = time.time()
         threads = []
@@ -124,6 +130,25 @@ def ExecuteSshScript(target, port, username, password, fileName, filePath):
         print ""
     SSHClient.close()
 
+
+def ScanLocalNetwork(ip):
+    print "Scanning"
+    for host in range(1, HowManyHosts(ip)):
+        newIp = ip.split(".")[0] + "." + ip.split(".")[1] + "." + ip.split(".")[1] + "."
+        print "Scanning: " + newIp + str(host)
+        threading.Thread(target=ScanHost, args=[newIp + str(host)]).start()
+        time.sleep(0.1)
+
+def ScanHost(ip):
+    if(IsPortOpen(ip, 22)):
+        print "SSH found: " + ip
+def HowManyHosts(ip, prefix=24):
+    return ipcalc.Network(ip, prefix).size()
+
+def IsPortOpen(ip, port=22):
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex((ip, port))
+    return result == 0
 
 def PrintBanner():
     print ""

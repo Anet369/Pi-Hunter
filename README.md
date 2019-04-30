@@ -7,24 +7,23 @@ straight forward installation, Clone the repository, give some permissions and r
 ```
 git clone https://github.com/Anet369/Pi-Hunter.git
 cd Pi-Hunter
-chmod +x install.py
-sudo ./install.py
+pip -r requirements.txt
 ```
 and you should be ready to go.
 
 One line version:
 ```
-git clone https://github.com/Anet369/Pi-Hunter.git && cd Pi-Hunter && chmod +x install.py && ./install.py
+git clone https://github.com/Anet369/Pi-Hunter.git && cd Pi-Hunter && pip -r requirements.txt
 ```
 ## Requirements
 **Pi-Hunter** is using a couple of python modules
 * **paramiko**
 * **subprocess**
 * **threading**
-* **os**
-* **sys**
+* **socket**
+* **ipcalc**
 
-All the requirements will be installed in the [install.py](install.py)
+All the requirements is listed in [requirements.txt](requirements.txt)
 
 
 ## Credit

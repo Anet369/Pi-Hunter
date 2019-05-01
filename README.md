@@ -33,7 +33,7 @@ All the requirements is listed in [requirements.txt](requirements.txt)
 This project is inspired by the awesome tool **rpi-hunter** made by **[BusesCanFly](https://github.com/BusesCanFly/rpi-hunter)**
 
 ## Todo
-* **Fix the asynchronous printing bug**
+* **Add a show only successful results option**
 * **Add a function to verify that the device is a raspberry pi and not just a regular ssh enabled device**
 
 

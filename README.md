@@ -32,6 +32,20 @@ All the requirements is listed in [requirements.txt](requirements.txt)
 ## Credit
 This project is inspired by the awesome tool **rpi-hunter** made by **[BusesCanFly](https://github.com/BusesCanFly/rpi-hunter)**
 
+## Usage
+For scanning your local network and executing a **whoami** command
+```
+./pi-hunter.py -l -c whoami
+```
+Scanning an ip range and executing **whoami**
+```
+./pi-hunter.py -r 192.168.0.0/24 -c whoami
+```
+And last you can use a ip-list in the form of a file
+```
+./pi-hunter.py -f filename -c whoami
+```
+
 ## Todo
 * **Add a show only successful results option**
 * **Add a function to verify that the device is a raspberry pi and not just a regular ssh enabled device**

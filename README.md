@@ -53,7 +53,7 @@ And last you can use a ip-list in the form of a file
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) for more information
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) for more information
 
 
 # *Disclamer*

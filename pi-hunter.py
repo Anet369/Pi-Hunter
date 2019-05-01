@@ -17,7 +17,7 @@ SuccessColor = "green"
 FailedColor = "red"
 
 #args
-parser = argparse.ArgumentParser();
+parser = argparse.ArgumentParser()
 
 TargetGroup = parser.add_argument_group("Target")
 TargetGroupOptions = TargetGroup.add_mutually_exclusive_group(required=True)
@@ -156,8 +156,8 @@ def ExecuteSshScript(target, port, username, password, fileName, filePath):
         return True
     except:
         PrintSshStatus(target, False, fileName)
-        return False
         SSHClient.close()
+        return False
 
 def PrintSshStatus(target, isSuccess, payload, output=""):
     threadLock.acquire()

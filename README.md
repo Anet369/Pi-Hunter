@@ -58,4 +58,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 # *Disclamer*
 ## Please use with responsibility, Pi-Hunter is made for fun and other legal whitehat purposes, please do not use without permission from the owner.
-## I am in no way liable or have any responiblity whatsoever for what you use with this tool for.
+## I am in no way liable or have any responiblity whatsoever for what you use this tool for.

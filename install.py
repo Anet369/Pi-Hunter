@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import os
+import subprocess
 
 aptPackages = ["nmap", "python-pip"]
 
